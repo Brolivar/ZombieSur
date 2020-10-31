@@ -28,28 +28,36 @@ function createGUI (withStats) {
   GUIcontrols = new function() {
     this.axis = true;
     this.lightIntensity = 0.5;
-    this.addedLightIntensity = true;
+    this.addedLightIntensity = 0.2;
     this.rotation = 0;
     this.distance = 0;
     this.height   = 1;
-
+    this.footRotation = 0;
     this.takeBox  = false;
+    
+    this.addBarricade  = function () {
+      applicationMode = TheScene.ADDING_BOXES;
+    };
+    this.moveBarricade  = function () {
+      applicationMode = TheScene.MOVING_BOXES;
+    };
+   
   }
  
 
 
   var gui = new dat.GUI();
+
   var axisLights = gui.addFolder ('Axis and Lights');
     axisLights.add(GUIcontrols, 'axis').name('Axis on/off :');
     axisLights.add(GUIcontrols, 'addedLightIntensity').name('Second Light intensity :');
-
 
   
   var r2d2Controls = gui.addFolder ('r2d2 Controls');
     r2d2Controls.add (GUIcontrols, 'rotation', -80, 80, 1).name('Rotación Cabeza').listen();
     r2d2Controls.add (GUIcontrols, 'distance', -45, 30, 1).name('Rotar Cuerpo').listen();
     r2d2Controls.add (GUIcontrols, 'height', 1, 1.2, 0.01).name('Altura piernas').listen();
-   
+    r2d2Controls.add (GUIcontrols, 'footRotation', -45, 30, 1).name('Rotar piernas').listen();
     // The method  listen()  allows the height attribute to be written, not only read
   
   if (withStats)
@@ -98,17 +106,17 @@ function onMouseDown (event) {
       mouseDown = true;
       switch (applicationMode) {
         case TheScene.ADDING_BOXES :
-          scene.addBox (event, TheScene.NEW_BOX);
+          scene.addBarricade (event, TheScene.NEW_BOX);
           break;
         case TheScene.MOVING_BOXES :
-          scene.moveBox (event, TheScene.SELECT_BOX);
+          scene.moveBarricade (event, TheScene.SELECT_BOX);
           break;
         default :
           applicationMode = TheScene.NO_ACTION;
           break;
       }
     } else {
-      setMessage ("");
+   //   setMessage ("");
       applicationMode = TheScene.NO_ACTION;
     }
   }
@@ -123,7 +131,7 @@ function onMouseMove (event) {
     switch (applicationMode) {
       case TheScene.ADDING_BOXES :
       case TheScene.MOVING_BOXES :
-        scene.moveBox (event, TheScene.MOVE_BOX);
+        scene.moveBarricade (event, TheScene.MOVE_BOX);
         break;
       default :
         applicationMode = TheScene.NO_ACTION;
@@ -132,6 +140,12 @@ function onMouseMove (event) {
   }
 }
 
+ function addBarr(){
+    if(scene.character.money >= 50){
+        applicationMode = TheScene.ADDING_BOXES;
+    }
+
+}
 /// It processes the clic-up of the mouse
 /**
  * @param event - Mouse information
@@ -140,10 +154,10 @@ function onMouseUp (event) {
   if (mouseDown) {
     switch (applicationMode) {
       case TheScene.ADDING_BOXES :
-        scene.addBox (event, TheScene.END_ACTION);
+        scene.addBarricade (event, TheScene.END_ACTION);
         break;
       case TheScene.MOVING_BOXES :
-        scene.moveBox (event, TheScene.END_ACTION);
+        scene.moveBarricade (event, TheScene.END_ACTION);
         break;
       default :
         applicationMode = TheScene.NO_ACTION;
@@ -151,6 +165,7 @@ function onMouseUp (event) {
     }
     mouseDown = false;
   }
+    applicationMode = TheScene.NO_ACTION;
 }
 
 /// It processes the wheel rolling of the mouse
@@ -166,10 +181,10 @@ function onMouseWheel (event) {
     if (mouseDown) {
       switch (applicationMode) {
         case TheScene.MOVING_BOXES :
-          scene.moveBox (event, TheScene.ROTATE_BOX);
+          scene.moveBarricade (event, TheScene.ROTATE_BOX);
           break;
         case TheScene.ADDING_BOXES :
-          scene.addBox(event, TheScene.ROTATE_BOX);
+          scene.addBarricade(event, TheScene.ROTATE_BOX);
           break;
       }
     }
@@ -200,9 +215,10 @@ function createRenderer () {
 function render() {
 
   requestAnimationFrame(render);
-  stats.update();
-  scene.getCameraControls().update ();
+    stats.update();
 
+
+   scene.getCameraControls().update ();
    scene.animate(GUIcontrols);
    renderer.render(scene, scene.getCamera());
 
@@ -210,11 +226,16 @@ function render() {
 
 function onKeyDown(){
   if(event.repeat){return;}
+
   if(event.key == 'w' || event.key == 'W' || event.key == "ArrowUp" ){
     scene.makeMove({move:'up'});
-  } else if( event.key == 'a' || event.key == 'A' || event.key == "ArrowLeft" ){
+  }else if( event.key == 'a' || event.key == 'A' || event.key == "ArrowLeft" ){
     scene.makeMove({move:'left'}); 
-  
+
+  }else if( event.key == 'q' || event.key == '  Q' ){
+    scene.rotateCamera({side:'izq'}); 
+  }else if( event.key == 'e' || event.key == '  E' ){
+    scene.rotateCamera({side:'der'}); 
   }else if( event.key == 's' || event.key == 'S' || event.key == "ArrowDown"){
    scene.makeMove({move:'down'}); 
   }else if( event.key == 'd' || event.key == 'D' || event.key == "ArrowRight"){
@@ -225,7 +246,12 @@ function onKeyDown(){
   scene.checkCamera({cam:1});
   }else if (event.key == ' '){
     this.pause();
+  }else if (event.key == 'i'){
+    scene.makeMove({move:'aim'});
+  }else if(event.key == 'u'){
+    scene.makeMove({move:'shoot'});
   }
+
   
 
 }
@@ -249,10 +275,24 @@ function onKeyDownArrow(){
 
 }
 
+function stateChange(newState) {
+    setTimeout(function () {
+        if (newState == -1) {
+           // alert('VIDEO HAS STOPPED');
+        }
+    }, 500);
+}
 
-
-
-
+function onKeyUp(){
+  stateChange(-1);
+  if(scene.character.walking){
+     scene.character.walk_stop();
+      scene.character.walking = false;
+  }
+}
+window.onload = function() {
+  var context = new AudioContext();
+}
 
 
 /// The main function
@@ -268,14 +308,16 @@ $(function () {
   window.addEventListener ("mouseup", onMouseUp, true);
   window.addEventListener ("mousewheel", onMouseWheel, true);   // For Chrome an others
   window.addEventListener ("DOMMouseScroll", onMouseWheel, true); // For Firefox
+  window.addEventListener ('keyup', onKeyUp,false);
   window.addEventListener('keydown', onKeyDownArrow,false);
   window.addEventListener('keypress', onKeyDown,false);
+
  // window.addEventListener('keyup', onKeyUp,false);
   // create a scene, that will hold all our elements such as objects, cameras and lights.
   scene = new TheScene (renderer.domElement);
- 
+  scene.background = new THREE.Color(0x00000);
+  scene.fog = new THREE.FogExp2( 0x000000, 0.00104 );
   createGUI(true);
-
-
+  dat.GUI.toggleHide();
   render();
 });

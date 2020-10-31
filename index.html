@@ -4,32 +4,53 @@
 
 <head>
 
-    <title>R2D2</title>
+    <title>Zombie Survival</title>
     <meta charset="utf-8">
-    <script type="text/javascript" src="../libs/three.js"></script>
-    <script type="text/javascript" src="../libs/jquery-1.9.0.js"></script>
-    <script type="text/javascript" src="../libs/stats.js"></script>
-    <script type="text/javascript" src="../libs/dat.gui.js"></script>
-    <script type="text/javascript" src="../libs/TrackballControls.js"></script>
-    <script type="text/javascript" src="Ground.js"></script>    
-    <script type="text/javascript" src="r2d2.js"></script>  
-    <script type="text/javascript" src="Ovo.js"></script>   
-    <script type="text/javascript" src="../libs/OBJLoader.js"></script>
+    <script type="text/javascript" src="libs/three.js"></script>
+    <script type="text/javascript" src="libs/jquery-1.9.0.js"></script>
+    <script type="text/javascript" src="libs/stats.js"></script>
+    <script type="text/javascript" src="libs/dat.gui.js"></script>
+    <script type="text/javascript" src="libs/TrackballControls.js"></script>
+    <script type="text/javascript" src="libs/Tween.js"></script>
+    <script type="text/javascript" src="building.js"></script>    
+    <script type="text/javascript" src="bullet.js"></script>    
+    <script type="text/javascript" src="barricade.js"></script>    
+    <script type="text/javascript" src="gun.js"></script>    
+    <script type="text/javascript" src="Ground.js"></script>   
+    <script type="text/javascript" src="Drop.js"></script>   
+    <script type="text/javascript" src="zombi.js"></script>
+    <script type="text/javascript" src="character.js"></script>
+    <script type="text/javascript" src="libs/OBJLoader.js"></script>
+    <script type="text/javascript" src="TheScene.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 
-    <script type="text/javascript" src="TheScene.js"></script>    
-    <script type="text/javascript" src="script.js"></script>    
-    <style>
-        body{
-            margin: 0;
-            overflow: hidden; 
-        }
-    </style>
+
 </head>
 <body>
 
+ <div id="balas">
+<!--  <div id='balasArma'>
+  </div> -->
+</div> 
 
-<!--<input type="button" value="Give me some points!" onClick="go(100);"/>-->
-<div id="center">
+
+
+<div id="endContainer">
+    <div class="gameover">
+      <h1 id='gamepausa'>Has Muerto</h1>
+      <h1 id="recarg" onclick='scene.backtoMenu()'>Volver al menu</h1>
+      <p> Oleadas Sobrevividas:<b id='pfinal'></b> </p>
+    </div>
+</div>
+
+
+<div id="MenuInicio">
+    <div class="Inicio">
+      <h1 id='tituloJuego'>ZOMBIE SURVIVAL</h1>
+      <h1 align="center"><a href="#" id="comenzarpartida" class="effect-underline" onclick='scene.startGame()'>Comenzar Partida</a>
+     
+    </div>
 </div>
 
 
@@ -38,11 +59,94 @@
 </div>
 
 <!-- Div which will show several messages -->
-<div style="position:absolute; left:100px; top:10px" id="Messages">
+<!-- <div style="position:absolute; left:100px; top:10px" id="Messages">
+</div>-->
+<!--- MI GUI -->
+<div class='fight-ui'>
+    <div class="entities-list" >
+          <div class="entitie" onclick='scene.CambiarArma({selected:0});'>
+            <div class="card">
+              <div class="health-bar">
+                <div class="health" style="height: 75%;"></div>
+              </div>
+               <img src="UI/mpk5.png">
+                 <div class="effects-overlay-normal" >
+                 </div>
+                 <p class='bullets' id='b1'></p>
+            </div>
+          </div>
+           <div class="entitie" onclick='scene.CambiarArma({selected:1});'>
+            <div class="card">
+              <div class="health-bar">
+                <div class="health" style="height: 20%;"></div>
+              </div>
+                <img src="UI/m4a4.png">
+              <div class="effects-overlay-bad" id='m4a4'>
+                <p class='buyPrice'>200$</p>
+              </div>
+             <p class='bullets' id='b2'></p>
+            </div>
+          </div>
+           <div class="entitie" onclick='scene.CambiarArma({selected:2});'>
+            <div class="card">
+               <img src="UI/shotgun.png">
+               <div class="effects-overlay-bad" id='escopeta'>
+                <p class='buyPrice'>300$</p>
+              </div>
+             <p class='bullets' id='b3'></p>
+
+            </div>
+          </div>
+  
+        </div>
 </div>
+<div class='construct-ui'>
+   <div class="entities-list" >
+          <div class="entitie" id='boxCard' onclick='addBarr();'>
+            <div class="card">
+              <div class="health-bar">
+                <div class="health" style="height: 75%;"></div>
+              </div>
+               <img src="UI/barricade.png">
+               <div class="effects-overlay-bad" id='barri'>
+                <p class='buyPrice'>50$</p>
+                <div class="critical-health"></div>
+              </div>
+            </div>
+          </div>
+          <div class="entitie" id='waveCard' onclick='scene.nextWave();'>
+            <div class="card">
+              <div class="health-bar">
+                <div class="health" style="height: 75%;"></div>
+              </div>
+               <p id='newWave'>Siguiente Oleada </p>
+            </div>
+          </div>
+          <div class="entitie" id='oroCard' >
+            <div class="card">
+              <div class="health-bar">
+                <div class="health" style="height: 75%;"></div>
+              </div>
+               <p id='oro'>0$ </p>
+            </div>
+          </div>
+    </div>
+</div>
+
+
+
+<div id="bar">
+  <div id="health">
+  </div><div id="lost">
+  </div><div id="heal"></div>
+</div>
+
+<!-- FIN MI GUI -->
+
 
 <!-- Div which will hold the Output -->
 <div id="WebGL-output">
 </div>
 </body>
+
 </html>
